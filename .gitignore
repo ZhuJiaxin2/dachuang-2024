@@ -1,0 +1,4 @@
+/text2style/outputs/
+*.zip
+/text2style/datasets/
+__pycache__/

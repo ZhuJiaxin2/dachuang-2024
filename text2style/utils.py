@@ -73,8 +73,9 @@ def get_all_data_loaders(conf):
     #                                             new_size_b, new_size_b, new_size_b, num_workers, True)
     return train_loader_a, train_loader_b, test_loader_a, test_loader_b
 
+# num_workers: 4 -> 0 by zwz, to fit windows
 def get_zip_dataloader(zip_path, batch_size, train, new_size=None,
-                           height=256, width=256, num_workers=4, crop=True):
+                           height=256, width=256, num_workers=0, crop=True):
     transform_list = [transforms.ToTensor(),
                       transforms.Normalize((0.5, 0.5, 0.5),
                                            (0.5, 0.5, 0.5))]#将图像归一化到[-1,1]
@@ -104,8 +105,9 @@ class ZipDataset(Dataset):
             image = self.transform(image)
         return image
 
+# num_workers: 4 -> 0 by zwz, to fit windows
 def get_data_loader_list(root, file_list, batch_size, train, new_size=None,
-                           height=256, width=256, num_workers=4, crop=True):
+                           height=256, width=256, num_workers=0, crop=True):
     transform_list = [transforms.ToTensor(),
                       transforms.Normalize((0.5, 0.5, 0.5),
                                            (0.5, 0.5, 0.5))]
@@ -116,9 +118,9 @@ def get_data_loader_list(root, file_list, batch_size, train, new_size=None,
     dataset = ImageFilelist(root, file_list, transform=transform)
     loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=train, drop_last=True, num_workers=num_workers)
     return loader
-
+# num_workers: 4 -> 0 by zwz, to fit windows
 def get_image_data_loader_folder(input_folder, batch_size, train, new_size=None,
-                           height=256, width=256, num_workers=4, crop=True):
+                           height=256, width=256, num_workers=0, crop=True):
     transform_list = [transforms.ToTensor(),
                       transforms.Normalize((0.5, 0.5, 0.5),
                                            (0.5, 0.5, 0.5))]#将图像归一化到[-1,1]
@@ -145,7 +147,8 @@ class TextDataset(Dataset):
             #到模型里再tokenize主要是为了方便端到端
             return text
 
-def get_text_data_loader_folder(input_folder, batch_size, train, num_workers=4): 
+# def get_text_data_loader_folder(input_folder, batch_size, train, num_workers=4): 
+def get_text_data_loader_folder(input_folder, batch_size, train, num_workers=0): # by zwz, to fit windows
     #TODO add_text还可以优化，使其更适应用户的实际输入。可以看一下prompt-engineering的实现
         #'transform into the style of' 
     
@@ -165,7 +168,7 @@ def get_text_data_loader_folder(input_folder, batch_size, train, num_workers=4):
 
 
 def get_config(config):
-    with open(config, 'r') as stream:
+    with open(config, 'r', encoding='utf-8') as stream:
         return yaml.load(stream, Loader=yaml.FullLoader)#yaml.load()将yaml文件转换成python字典
 
 #似乎没有用

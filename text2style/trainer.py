@@ -50,7 +50,7 @@ class MUNIT_Trainer(nn.Module):
         self.clip_model.eval()
         for param in self.clip_model.parameters():
             param.requires_grad = False
-        self.photo = self.clip_model.encode_text(clip.tokenize(['photo']).to(device))
+        self.photo = self.clip_model.encode_text(clip.tokenize(['photo']).to(self.device))
         #self.style_list = clip.tokenize(style_list).to(device) 
         # with open('whole_style_list_tokens.pkl', 'wb') as f:
         #     pickle.dump(tokens, f)
@@ -70,7 +70,7 @@ class MUNIT_Trainer(nn.Module):
         clip_model = self.clip_model
         encode = self.gen_a.encode#content和style共用这一个encode函数
         decode = self.gen_a.decode#Ds和Dtt共用这一个decode函数
-        Tt = clip.tokenize(Tt)
+        Tt = clip.tokenize(Tt).to(self.device)
 
         Fs_c, __ = encode(Is)
         Ett = clip_model.encode_text(Tt)
@@ -110,7 +110,8 @@ class MUNIT_Trainer(nn.Module):
             Ett_o = clip_model.encode_image(Itt_o_pre)
 
         # loss 1
-            self.loss_1 = nn.L1Loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
+            l1_loss = nn.L1Loss()
+            self.loss_1 = l1_loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
             self.loss_1.requires_grad_()
         # loss 2
             self.loss_2 = F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
