@@ -82,6 +82,7 @@ class MUNIT_Trainer(nn.Module):
         self.train()
         return Itt_o
 
+    # TODO：我发现完全没有用到encoder中的content，所以全部删掉
     def gen_update(self, Is, Tt, hyperparameters):
         clip_model = self.clip_model
         encode = self.gen_a.encode#content和style共用这一个encode函数
@@ -94,6 +95,7 @@ class MUNIT_Trainer(nn.Module):
         self.gen_opt.zero_grad()
 
         Fs_c, _ = encode(Is)
+        # TODO 这里的_用embedding换掉
         Is_o = decode(Fs_c, _, norm='content')#Ds #Is.shape = [1,3,256,256]
 
         Fs_o, _ = encode(Is_o)

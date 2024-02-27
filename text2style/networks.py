@@ -213,12 +213,26 @@ class StyleEncoder(nn.Module):
 
 class ContentEncoder(nn.Module):
     def __init__(self, n_downsample, n_res, input_dim, dim, norm, activ, pad_type):
-        super(ContentEncoder, self).__init__()
+        super().__init__()
         self.model = []
-        self.model += [Conv2dBlock(input_dim, dim, 7, 1, 3, norm=norm, activation=activ, pad_type=pad_type)]
+        self.model += [Conv2dBlock(input_dim=input_dim, 
+                                   output_dim=dim, 
+                                   kernel_size=7, 
+                                   stride=1, 
+                                   padding=3, 
+                                   norm=norm, 
+                                   activation=activ, 
+                                   pad_type=pad_type)]
         # downsampling blocks
         for i in range(n_downsample):
-            self.model += [Conv2dBlock(dim, 2 * dim, 4, 2, 1, norm=norm, activation=activ, pad_type=pad_type)]
+            self.model += [Conv2dBlock(input_dim=dim, 
+                                       output_dim=2 * dim, 
+                                       kernel_size=4, 
+                                       stride=2, 
+                                       padding=1, 
+                                       norm=norm, 
+                                       activation=activ, 
+                                       pad_type=pad_type)]
             dim *= 2
         # residual blocks
         self.model += [ResBlocks(n_res, dim, norm=norm, activation=activ, pad_type=pad_type)]
@@ -252,10 +266,10 @@ class Decoder(nn.Module):
 ##################################################################################
 class ResBlocks(nn.Module):
     def __init__(self, num_blocks, dim, norm='in', activation='relu', pad_type='zero'):
-        super(ResBlocks, self).__init__()
+        super().__init__()
         self.model = []
         for i in range(num_blocks):
-            self.model += [ResBlock(dim, norm=norm, activation=activation, pad_type=pad_type)]
+            self.model += [ResBlock(dim=dim, norm=norm, activation=activation, pad_type=pad_type)]
         self.model = nn.Sequential(*self.model)
 
     def forward(self, x):
@@ -264,11 +278,13 @@ class ResBlocks(nn.Module):
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, dim, n_blk, norm='none', activ='relu'):
 
-        super(MLP, self).__init__()
+        super().__init__()
         self.model = []
         self.model += [LinearBlock(input_dim, dim, norm=norm, activation=activ)]
-        for i in range(n_blk - 2):
+        for _ in range(n_blk - 2):
             self.model += [LinearBlock(dim, dim, norm=norm, activation=activ)]
+        #TODO 最后一层不加入ReLU激活函数，是否会导致标准差小于0？
+        #TODO 最后一层加入ReLU激活函数，是否会导致均值只能大于0？
         self.model += [LinearBlock(dim, output_dim, norm='none', activation='none')] # no output activations
         self.model = nn.Sequential(*self.model)
 
@@ -280,11 +296,25 @@ class MLP(nn.Module):
 ##################################################################################
 class ResBlock(nn.Module):
     def __init__(self, dim, norm='in', activation='relu', pad_type='zero'):
-        super(ResBlock, self).__init__()
+        super().__init__()
 
         model = []
-        model += [Conv2dBlock(dim ,dim, 3, 1, 1, norm=norm, activation=activation, pad_type=pad_type)]
-        model += [Conv2dBlock(dim ,dim, 3, 1, 1, norm=norm, activation='none', pad_type=pad_type)]
+        model += [Conv2dBlock(input_dim=dim ,
+                              output_dim=dim, 
+                              kernel_size=3, 
+                              stride=1, 
+                              padding=1, 
+                              norm=norm, 
+                              activation=activation, 
+                              pad_type=pad_type)]
+        model += [Conv2dBlock(input_dim=dim ,
+                              output_dim=dim, 
+                              kernel_size=3, 
+                              stride=1, 
+                              padding=1, 
+                              norm=norm, 
+                              activation='none', 
+                              pad_type=pad_type)]
         self.model = nn.Sequential(*model)
 
     def forward(self, x):
@@ -460,7 +490,7 @@ class Vgg16(nn.Module):
 ##################################################################################
 class AdaptiveInstanceNorm2d(nn.Module):
     def __init__(self, num_features, eps=1e-5, momentum=0.1):
-        super(AdaptiveInstanceNorm2d, self).__init__()
+        super().__init__()
         self.num_features = num_features
         self.eps = eps
         self.momentum = momentum
@@ -478,12 +508,15 @@ class AdaptiveInstanceNorm2d(nn.Module):
         running_var = self.running_var.repeat(b)
 
         # Apply instance norm
+        # contiguous()：复制一份内存，改变x_reshaped不改变原x
+        # TODO：之后没有用到x了，可不可以优化内存
         x_reshaped = x.contiguous().view(1, b * c, *x.size()[2:])
 
+        # ! TODO: 为什么要设置True、running_mean、running_var
         out = F.batch_norm(
             x_reshaped, running_mean, running_var, self.weight, self.bias,
             True, self.momentum, self.eps)
-
+        # print('running_mean', running_mean[0])
         return out.view(b, c, *x.size()[2:])
 
     def __repr__(self):
