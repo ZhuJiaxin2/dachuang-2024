@@ -9,6 +9,9 @@ import os
 import clip
 from PIL import Image
 import torchvision.transforms as transforms
+from torchvision import datasets
+
+datasets.ImageFolder
 
 def image_preprocess(images):
     transform = transforms.Compose([

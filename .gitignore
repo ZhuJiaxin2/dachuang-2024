@@ -2,3 +2,4 @@
 *.zip
 /text2style/datasets/
 __pycache__/
+/text2style/logs
