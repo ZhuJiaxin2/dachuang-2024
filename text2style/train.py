@@ -46,12 +46,19 @@ output_directory = os.path.join(opts.output_path + "/outputs", model_name)
 checkpoint_directory, image_directory = prepare_sub_folder(output_directory)
 shutil.copy(opts.config, os.path.join(output_directory, 'config.yaml')) # copy config file to output folder
 
-# Start training
+
+# 如要读取训练进度，则在终端中运行`python train.py --resume`（或者将下面这句语句的注释取消掉）
+# opts.resume = 1
+
+# 读取上次的训练进度，如成功读取会print: Resumed from iter xxx
 iterations = trainer.resume(checkpoint_directory, hyperparameters=config) if opts.resume else 0
+
+# Start training
 while True:
     for it, (images, texts) in enumerate(zip(train_loader_a, train_loader_b)):
         trainer.update_learning_rate()
         images, texts = images.cuda().detach(), texts#我不需要计算images和texts的梯度
+        
         # breakpoint()
         with Timer("Elapsed time in update: %f"):
             # Main training code
