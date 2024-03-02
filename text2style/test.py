@@ -30,7 +30,7 @@ model.eval()
 # test_img = Image.open('./tubingen.jpg')
 
 for it, (images, texts) in enumerate(zip(test_loader_a, test_loader_b)):
-    test_img = torch.unsqueeze(images[0], 0).to(device)
+    test_img = torch.unsqueeze(images[it], 0).to(device)#把image[0]改成了image[it]，使得能够测试testA文件夹里的所有图像
     # test_text = ['The Starry Night by Vincent Van Gogh']
     test_text = ['cartoon style']
     # test_img = test_img
