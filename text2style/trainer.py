@@ -9,9 +9,6 @@ import os
 import clip
 from PIL import Image
 import torchvision.transforms as transforms
-from torchvision import datasets
-
-datasets.ImageFolder
 
 def image_preprocess(images):
     transform = transforms.Compose([
@@ -82,7 +79,6 @@ class MUNIT_Trainer(nn.Module):
         self.train()
         return Itt_o
 
-    # TODO：我发现完全没有用到encoder中的content，所以全部删掉
     def gen_update(self, Is, Tt, hyperparameters):
         clip_model = self.clip_model
         encode = self.gen_a.encode#content和style共用这一个encode函数
@@ -90,12 +86,11 @@ class MUNIT_Trainer(nn.Module):
         device = self.device
         photo = self.photo
         Tt = clip.tokenize(Tt).to(device)
-        with open('./whole_style_list_tokens.pkl', 'rb') as f:
-            style_list_tokens = pickle.load(f).to(device)
+        # with open('./whole_style_list_tokens.pkl', 'rb') as f:
+        #     style_list_tokens = pickle.load(f).to(device)
         self.gen_opt.zero_grad()
 
         Fs_c, _ = encode(Is)
-        # TODO 这里的_用embedding换掉
         Is_o = decode(Fs_c, _, norm='content')#Ds #Is.shape = [1,3,256,256]
 
         Fs_o, _ = encode(Is_o)
@@ -115,14 +110,14 @@ class MUNIT_Trainer(nn.Module):
             Ett_o = clip_model.encode_image(Itt_o_pre)
 
         # loss 1
-            l1_loss = nn.L1Loss()
-            self.loss_1 = l1_loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
+            self.loss_1 = nn.L1Loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
             self.loss_1.requires_grad_()
         # loss 2
-            self.loss_2 = F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
+            self.loss_2 = -F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
         # loss 3
             with torch.no_grad():
-                all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
+                all_style_loss, _ = clip_model(Is_o_pre, Tt) if hyperparameters['loss_3_w'] > 0 else (0, _)
+                # all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
             self.loss_3 = all_style_loss.max()
             self.loss_3.requires_grad_()
         # loss 4

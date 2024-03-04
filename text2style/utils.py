@@ -143,7 +143,8 @@ def get_text_data_loader_folder(input_folder, batch_size, train, num_workers=0):
 
     #TODO text输入可以不用import, 而是读取txt文件
 
-    dataset = TextDataset(whole_style_list)
+    # dataset = TextDataset(whole_style_list)
+    dataset = TextDataset(['starry night by Vincent Van Gogh'])
     loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=train, drop_last=True, num_workers=num_workers)
     return loader
 
