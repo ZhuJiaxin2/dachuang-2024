@@ -139,6 +139,7 @@ class MUNIT_Trainer(nn.Module):
                             
         self.loss_total.backward()
         self.gen_opt.step()
+        return self.loss_total.item()
 
     def compute_vgg_loss(self, vgg, img, target):
         img_vgg = vgg_preprocess(img)

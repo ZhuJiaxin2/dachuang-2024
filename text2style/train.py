@@ -61,8 +61,9 @@ while True:
         # breakpoint()
         with Timer("Elapsed time in update: %f"):
             # Main training code
-            trainer.gen_update(images, texts, config)
+            loss_total = trainer.gen_update(images, texts, config)
             torch.cuda.synchronize()
+            print('loss_total:', loss_total)
 
         # Dump training stats in log file
         if (iterations + 1) % config['log_iter'] == 0:
@@ -76,10 +77,10 @@ while True:
         iterations += 1
         # breakpoint()
         # print('first layer grad:', trainer.gen_a.enc_content.model[0].conv.weight.grad)
-        print('-' * 60)
-        for name, param in trainer.named_parameters():
-            if param.grad is None:
-                print(name, param.grad_fn)
+        # print('-' * 60)
+        # for name, param in trainer.named_parameters():
+        #     if param.grad is None:
+        #         print(name, param.grad_fn)
 
         if iterations >= max_iter:
             sys.exit('Finish training')
