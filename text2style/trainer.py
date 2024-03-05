@@ -104,18 +104,17 @@ class MUNIT_Trainer(nn.Module):
         Is_o_pre = image_preprocess(Is_o)
             # Es_co = clip_model.encode_image(Is_o_pre)
 
-        # TODO
-        with torch.no_grad():
-            Ett = clip_model.encode_text(Tt)
+        # with torch.no_grad():
+        Ett = clip_model.encode_text(Tt)
 
         Itt_o = decode(Fs_c, Ett, norm='adain')#Dtt
         Ftt_c, _ = encode(Itt_o)
 
-        # TODO
-        with torch.no_grad():
-            Itt_o_pre = image_preprocess(Itt_o)#如果输出是224*224的话，这里就不用resize了
-            Ett_o = clip_model.encode_image(Itt_o_pre)
+        # with torch.no_grad():
+        Itt_o_pre = image_preprocess(Itt_o)#如果输出是224*224的话，这里就不用resize了
+        Ett_o = clip_model.encode_image(Itt_o_pre)
 
+        # with torch.no_grad():
         # loss 1
         l1_loss = nn.L1Loss()
         self.loss_1 = l1_loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
@@ -127,6 +126,7 @@ class MUNIT_Trainer(nn.Module):
         all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
         self.loss_3 = all_style_loss.max()
         self.loss_3.requires_grad_()
+        # with torch.no_grad():
         # loss 4
         self.loss_4 = F.mse_loss(Ftt_c, Fs_c) if hyperparameters['loss_4_w'] > 0 else 0
         self.loss_4.requires_grad_()
