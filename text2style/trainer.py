@@ -22,7 +22,7 @@ def image_preprocess(images):
 
 class MUNIT_Trainer(nn.Module):
     def __init__(self, hyperparameters):
-        super(MUNIT_Trainer, self).__init__()
+        super().__init__()
         lr = hyperparameters['lr']
         clip_dim = hyperparameters['clip_dim']
         # Initiate the networks
@@ -38,8 +38,8 @@ class MUNIT_Trainer(nn.Module):
         # Setup the optimizers
         beta1 = hyperparameters['beta1']
         beta2 = hyperparameters['beta2']
-        gen_params = list(self.gen_a.parameters())
-        self.gen_opt = torch.optim.Adam([p for p in gen_params if p.requires_grad],
+        # gen_params = list(self.gen_a.parameters())
+        self.gen_opt = torch.optim.Adam(filter(lambda p: p.requires_grad, self.gen_a.parameters()),
                                         lr=lr, betas=(beta1, beta2), weight_decay=hyperparameters['weight_decay'])
         # self.dis_scheduler = get_scheduler(self.dis_opt, hyperparameters)
         self.gen_scheduler = get_scheduler(self.gen_opt, hyperparameters)
@@ -95,39 +95,41 @@ class MUNIT_Trainer(nn.Module):
         self.gen_opt.zero_grad()
 
         Fs_c, _ = encode(Is)
-        # TODO 这里的_用embedding换掉
         Is_o = decode(Fs_c, _, norm='content')#Ds #Is.shape = [1,3,256,256]
 
         Fs_o, _ = encode(Is_o)
         Is_p = decode(Fs_o, photo, norm='adain')
 
-        with torch.no_grad():
-            Is_o_pre = image_preprocess(Is_o)
+        # with torch.no_grad():
+        Is_o_pre = image_preprocess(Is_o)
             # Es_co = clip_model.encode_image(Is_o_pre)
 
+        # TODO
+        with torch.no_grad():
             Ett = clip_model.encode_text(Tt)
 
         Itt_o = decode(Fs_c, Ett, norm='adain')#Dtt
         Ftt_c, _ = encode(Itt_o)
 
+        # TODO
         with torch.no_grad():
             Itt_o_pre = image_preprocess(Itt_o)#如果输出是224*224的话，这里就不用resize了
             Ett_o = clip_model.encode_image(Itt_o_pre)
 
         # loss 1
-            l1_loss = nn.L1Loss()
-            self.loss_1 = l1_loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
-            self.loss_1.requires_grad_()
+        l1_loss = nn.L1Loss()
+        self.loss_1 = l1_loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
+        self.loss_1.requires_grad_()
         # loss 2
-            self.loss_2 = F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
+        self.loss_2 = F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
         # loss 3
-            with torch.no_grad():
-                all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
-            self.loss_3 = all_style_loss.max()
-            self.loss_3.requires_grad_()
+            # with torch.no_grad():
+        all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
+        self.loss_3 = all_style_loss.max()
+        self.loss_3.requires_grad_()
         # loss 4
-            self.loss_4 = F.mse_loss(Ftt_c, Fs_c) if hyperparameters['loss_4_w'] > 0 else 0
-            self.loss_4.requires_grad_()
+        self.loss_4 = F.mse_loss(Ftt_c, Fs_c) if hyperparameters['loss_4_w'] > 0 else 0
+        self.loss_4.requires_grad_()
 
         # total loss
         self.loss_total = hyperparameters['loss_1_w'] * self.loss_1 +\

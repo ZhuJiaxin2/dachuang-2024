@@ -56,7 +56,6 @@ iterations = trainer.resume(checkpoint_directory, hyperparameters=config) if opt
 # Start training
 while True:
     for it, (images, texts) in enumerate(zip(train_loader_a, train_loader_b)):
-        trainer.update_learning_rate()
         images, texts = images.cuda().detach(), texts#我不需要计算images和texts的梯度
         
         # breakpoint()
@@ -75,6 +74,15 @@ while True:
             trainer.save(checkpoint_directory, iterations)
 
         iterations += 1
+        # breakpoint()
+        # print('first layer grad:', trainer.gen_a.enc_content.model[0].conv.weight.grad)
+        print('-' * 60)
+        for name, param in trainer.named_parameters():
+            if param.grad is None:
+                print(name, param.grad_fn)
+
         if iterations >= max_iter:
             sys.exit('Finish training')
+
+        trainer.update_learning_rate()
 
