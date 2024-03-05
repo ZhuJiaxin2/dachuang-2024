@@ -113,7 +113,7 @@ class MUNIT_Trainer(nn.Module):
             self.loss_1 = nn.L1Loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
             self.loss_1.requires_grad_()
         # loss 2
-            self.loss_2 = F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
+            self.loss_2 = -F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
         # loss 3
             with torch.no_grad():
                 all_style_loss, _ = clip_model(Is_o_pre, style_list_tokens) if hyperparameters['loss_3_w'] > 0 else (0, _)
