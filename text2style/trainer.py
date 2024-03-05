@@ -110,7 +110,8 @@ class MUNIT_Trainer(nn.Module):
             Ett_o = clip_model.encode_image(Itt_o_pre)
 
         # loss 1
-            self.loss_1 = nn.L1Loss(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
+            loss_1 = nn.L1Loss()
+            self.loss_1 = loss_1(Is, Is_p) if hyperparameters['loss_1_w'] > 0 else 0
             self.loss_1.requires_grad_()
         # loss 2
             self.loss_2 = -F.cosine_similarity(Ett_o, Ett, dim=-1) if hyperparameters['loss_2_w'] > 0 else 0
@@ -121,7 +122,7 @@ class MUNIT_Trainer(nn.Module):
             self.loss_3 = all_style_loss.max()
             self.loss_3.requires_grad_()
         # loss 4
-            self.loss_4 = F.mse_loss(Ftt_c, Fs_c) if hyperparameters['loss_4_w'] > 0 else 0
+            self.loss_4 = F.mse_loss(Ftt_c, Fs_c) if hyperparameters['loss_4_w'] > 0 else torch.tensor(0.0)
             self.loss_4.requires_grad_()
 
         # total loss
@@ -132,6 +133,8 @@ class MUNIT_Trainer(nn.Module):
                             
         self.loss_total.backward()
         self.gen_opt.step()
+        # breakpoint()
+        return self.loss_total.item()
 
     def compute_vgg_loss(self, vgg, img, target):
         img_vgg = vgg_preprocess(img)

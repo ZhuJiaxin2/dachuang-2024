@@ -3,6 +3,7 @@ import os
 from PIL import Image
 
 def default_loader(path):
+    # TODO: path中不一定全是img文件，要手动确认
     return Image.open(path).convert('RGB')
 
 # TODO: 没用过，删

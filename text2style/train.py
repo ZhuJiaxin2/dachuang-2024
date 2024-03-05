@@ -55,14 +55,17 @@ iterations = trainer.resume(checkpoint_directory, hyperparameters=config) if opt
 
 # Start training
 while True:
+    loss_list = []
     for it, (images, texts) in enumerate(zip(train_loader_a, train_loader_b)):
-        trainer.update_learning_rate()
         images, texts = images.cuda().detach(), texts#我不需要计算images和texts的梯度
         
         # breakpoint()
         with Timer("Elapsed time in update: %f"):
             # Main training code
-            trainer.gen_update(images, texts, config)
+            total_loss = trainer.gen_update(images, texts, config)
+            # gen_update的返回值是总loss，用于查看训练进度
+            print("total_loss: ", total_loss)
+            loss_list.append(total_loss)
             torch.cuda.synchronize()
 
         # Dump training stats in log file
@@ -75,6 +78,8 @@ while True:
             trainer.save(checkpoint_directory, iterations)
 
         iterations += 1
+        # UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.
+        trainer.update_learning_rate()
         if iterations >= max_iter:
             sys.exit('Finish training')
 

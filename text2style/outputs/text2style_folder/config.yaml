@@ -19,10 +19,10 @@ lr: 0.0001                    # initial learning rate
 lr_policy: step               # learning rate scheduler
 step_size: 100000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
-loss_1_w: 0.8                   # weight of L1 loss between Is and Is_p
-loss_2_w: 0.8                   # weight of cosine similarity loss between Ett_o and Ett
+loss_1_w: 16                   # weight of L1 loss between Is and Is_p
+loss_2_w: 0                   # weight of cosine similarity loss between Ett_o and Ett
 loss_3_w: 0.5                   # weight of cosine similarity loss between Es_co and tokenized whole_style_list
-loss_4_w: 0.5                   # weight of mse_loss between Ftt_c and Fs_c
+loss_4_w: 0                   # weight of mse_loss between Ftt_c and Fs_c
 vgg_w: 0                      # whether or not i use vgg
 clip_dim: 512                 # dimension of clip feature
 vgg_model_path: .
