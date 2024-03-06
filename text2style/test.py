@@ -6,6 +6,7 @@ import PIL.Image as Image
 import torch.nn.functional as F
 from utils import get_config, get_all_data_loaders
 import argparse
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default='configs/text2style_folder.yaml', help='Path to the config file.')
@@ -29,16 +30,17 @@ model.eval()
 
 # test_img = Image.open('./tubingen.jpg')
 
-for it, (images, texts) in enumerate(zip(test_loader_a, test_loader_b)):
+for it, images in tqdm(enumerate(test_loader_a)):
     test_img = torch.unsqueeze(images[0], 0).to(device)
-    # test_text = ['The Starry Night by Vincent Van Gogh']
-    test_text = ['cartoon style']
+    test_text = ['The Starry Night by Vincent Van Gogh']
+    # test_text = ['cartoon style']
     # test_img = test_img
-    output = model(test_img, test_text)
+    with torch.no_grad():
+        output = model(test_img, test_text)
 
     # 将output的数据范围从[-1, 1]改为[0, 1]
     output = (output + 1) / 2
-    save_image(output, f'./outputs/results_cartoon/{it}_output.png')
+    save_image(output, f'./outputs/results/{it}_output.png')
 
 
 
